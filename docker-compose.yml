@@ -1,0 +1,20 @@
+version: '3'
+services:
+  php:
+    build: ./docker/app
+    volumes:
+      - ./docker/app/php.ini:/usr/local/etc/php/php.ini
+      - ./www:/var/www/html
+    ports:
+      - "8080:80"
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: docker_db
+      MYSQL_USER: docker_user
+      MYSQL_PASSWORD: docker_pass
+    ports:
+      - "3306:3306"
+    volumes:
+        - ./docker/db/my.cnf:/etc/mysql/conf.d/my.cnf
