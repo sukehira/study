@@ -136,7 +136,7 @@ $resultsData = array_slice($results, $startNumber, 3, true);
 </div>
 
 <div class="container">
-    <nav aria-label="ページ送りの実例">
+    <nav aria-label>
         <ul class="pagination">
             <?php if ($totalCounts > 3): ?>
                 <?php echo '<a href=\'/index.php?page_id= 1 \'> << </a>' . '　'; ?>
