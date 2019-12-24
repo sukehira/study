@@ -1,61 +1,23 @@
 <?php
-
+session_start();
 require_once 'config/env.php';
+require_once 'lib/function.php';
 
+$request = $_POST;
+$_SESSION['id'] = $_GET['id'];
+// 求人一覧取得
+$recruitmentLists = fetchRecruitmentList($request);
 
-$db = DB_DBNAME;
-$host = DB_HOSTNAME;
-$username = DB_USERNAME;
-$password = DB_PASSWORD;
-
-$params = $_POST;
-
-try {
-    $conn = new PDO("mysql:dbname=$db;host=$host", $username, $password);
-    $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    echo 'データベースに接続できません！アプリの設定を確認してください。';
-    exit;
+$db = dbConnect();
+if (!empty($_POST['order_by'])) {
+    $sql = 'select * from job_application order by id desc';
 }
-
-$where = [];
-if (!empty($params['name_sei'])) {
-    $where[] = "name_sei like '%{$params['name_sei']}%'";
-}
-if (!empty($params['email'])) {
-    $where[] = "email like '%{$params['email']}%'";
-}
-// 誕生日
-if (!empty($params['start_birthday']) && !empty($params['end_birthday'])) {
-    $where[] = "birthday between '{$params['start_birthday']}' and '{$params['end_birthday']}'";
-} elseif (!empty($params['start_birthday'])) {
-    $where[] = "birthday >= '{$params['start_birthday']}'";
-} elseif (!empty($params['end_birthday'])) {
-    $where[] = "birthday <= '{$params['end_birthday']}'";
-}
-if (!empty($params['prefecture'])) {
-    $where[] = "prefecture = '{$params['prefecture']}'";
-}
-if (!empty($params['gender'])) {
-    $where[] = "gender = '{$params['gender']}'";
-}
-if (!empty($params['experience_pg'])) {
-    $experiencePgs = implode("','", $params['experience_pg']);
-    $where[] = "experience_pg in ('{$experiencePgs}')";
-}
-
-if ($where) {
-    $whereSql = implode(' AND ', $where);
-    $sql = 'select * from job_application where ' . $whereSql;
-} else {
-    $sql = 'select * from job_application';
-}
-
-$stm = $conn->prepare($sql);
+$stm = $db->prepare($sql);
 $stm->execute();
-$results = $stm->fetchAll(PDO::FETCH_ASSOC);
+$orderBy = $stm->fetchAll(PDO::FETCH_ASSOC);
 
-$totalCounts = count($results);
+// ページネーション
+$totalCounts = count($recruitmentLists);
 $maxPage = ceil($totalCounts / 3);
 
 if (!isset($_GET['page_id'])) { // $_GET['page_id'] はURLに渡された現在のページ数
@@ -67,7 +29,7 @@ $back = $now - 1;
 $move = $now + 1;
 
 $startNumber = ($now - 1) * 3; // 配列の何番目から取得すればよいか
-$resultsData = array_slice($results, $startNumber, 3, true);
+$recruitmentLists = array_slice($recruitmentLists, $startNumber, 3, true);
 
 ?>
 
@@ -141,7 +103,6 @@ $resultsData = array_slice($results, $startNumber, 3, true);
             <?php if ($totalCounts > 3): ?>
                 <?php echo '<a href=\'/index.php?page_id= 1 \'> << </a>' . '　'; ?>
                 <?php echo '<a href=\'/index.php?page_id=' . $back . '\'> < </a>' . '　'; ?>
-
                 <?php
                 for ($i = 1; $i <= $maxPage; $i++) { // 最大ページ数分リンクを作成
                     if ($i == $now) { // 現在表示中のページ数の場合はリンクを貼らない
@@ -151,10 +112,9 @@ $resultsData = array_slice($results, $startNumber, 3, true);
                     }
                 }
                 ?>
-
                 <?php echo '<a href=\'/index.php?page_id=' . $move . '\'> > </a>' . '　'; ?>
                 <?php echo '<a href=\'/index.php?page_id=' . $maxPage . '\'> >> </a>' . '　'; ?>
-            <?php endif;?>
+            <?php endif; ?>
         </ul>
     </nav>
     <table class="table">
@@ -172,17 +132,17 @@ $resultsData = array_slice($results, $startNumber, 3, true);
         </tr>
         </thead>
         <tbody>
-        <?php foreach ($resultsData as $data): ?>
+        <?php foreach ($recruitmentLists as $recruitmentList): ?>
             <tr>
-                <td><?php echo $data['id']; ?></td>
-                <td><?php echo $data['name_sei'] . $data['name_mei']; ?></td>
-                <td><?php echo $data['email']; ?></td>
-                <td><?php echo $data['gender']; ?></td>
-                <td><?php echo $data['prefecture']; ?></td>
-                <td><?php echo $data['experience_pg']; ?></td>
-                <td><?php echo $data['photo']; ?></td>
-                <td><a href="edit.php">編集</a></td>
-                <td><a href="destroy.php">削除</a></td>
+                <td><?php echo $recruitmentList['id']; ?></td>
+                <td><?php echo $recruitmentList['name_sei'] . $recruitmentList['name_mei']; ?></td>
+                <td><?php echo $recruitmentList['email']; ?></td>
+                <td><?php echo $recruitmentList['gender']; ?></td>
+                <td><?php echo $recruitmentList['prefecture']; ?></td>
+                <td><?php echo $recruitmentList['experience_pg']; ?></td>
+                <td><?php echo $recruitmentList['photo']; ?></td>
+                <td><?php echo "<a href=edit.php?id=" . $recruitmentList["id"] . ">編集</a>"; ?></td>
+                <td><?php echo "<a href=destroy.php?id=" . $recruitmentList["id"] . ">削除</a>"; ?></td>
             </tr>
         <?php endforeach; ?>
         </tbody>

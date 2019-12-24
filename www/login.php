@@ -1,6 +1,10 @@
 <?php
+session_start();
+require_once 'config/env.php';
+require_once 'lib/function.php';
 
-// TODO
+$db = dbConnect();
+
 ?>
 
 <!doctype html>
@@ -16,22 +20,19 @@
     <title>ログインページ</title>
 </head>
 <body>
-<div class="container" class="mx-auto mt-auto">
+<div class="position-absolute h-100 w-100 m-0 d-flex align-items-center justify-content-center">
     <div class="card card-container">
-        <form class="form-signin" action="menu.php" method="post">
+        <form class="form-signin" action="login.php" method="post">
             <span id="reauth-email" class="reauth-email"></span>
-            <input type="email" id="inputEmail" class="form-control" placeholder="メール" required autofocus>
-            <input type="password" id="inputPassword" class="form-control" placeholder="パスワード" required>
+            <input type="email" class="form-control" placeholder="メール" name="email" required autofocus>
+            <input type="password" class="form-control" placeholder="パスワード" name="password" required>
             <div id="remember" class="checkbox">
                 <label>
-                    <input type="checkbox" value="remember-me"> 記憶する
+                    <input type="checkbox" value="remember-me"> ログイン状態を保存する
                 </label>
             </div>
             <button class="btn btn-lg btn-primary btn-block btn-signin" type="submit">ログイン</button>
         </form>
-        <a href="#" class="forgot-password">
-            パスワードを忘れましたか？
-        </a>
     </div>
 </div>
 <!-- Optional JavaScript -->

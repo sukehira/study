@@ -1,22 +1,49 @@
 <?php
-
 require_once 'config/env.php';
+require_once 'lib/function.php';
 
-$db = DB_DBNAME;
-$host = DB_HOSTNAME;
-$username = DB_USERNAME;
-$password = DB_PASSWORD;
 
-try {
-    $conn = new PDO("mysql:dbname=$db;host=$host", $username, $password);
-    $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    echo 'データベースに接続できません！アプリの設定を確認してください。';
-    exit;
+$where = [];
+if (!empty($request['name_sei'])) {
+    $where[] = "name_sei = {$request['name_sei']}";
 }
-$conn->query("select * from job_application");
+if (!empty($request['name_mei'])) {
+    $where[] = "name_mei = {$request['name_mei']}";
+}
+if (!empty($request['email'])) {
+    $where[] = "email = {$request['email']}";
+}
+if (!empty($request['password'])) {
+    $where[] = "passwd = {$request['password']}";
+}
+if (!empty($request['prefecture'])) {
+    $where[] = "prefecture = {$request['prefecture']}";
+}
+if (!empty($request['address'])) {
+    $where[] = "address = {$request['address']}";
+}
+if (!empty($request['mansion'])) {
+    $where[] = "mansion = {$request['mansion']}";
+}
+if (!empty($request['tel'])) {
+    $where[] = "tel = {$request['tel']}";
+}
+if (!empty($request['self_pr'])) {
+    $where[] = "self_pr = {$request['self_pr']}";
+}
 
-// TODO
+$whereSql = implode("," , $where);
+
+$sql = "update job_application set {$whereSql} where id = {$request}";
+
+
+$stm = $db->prepare($sql);
+$stm->execute();
+$stm->fetchAll(PDO::FETCH_ASSOC);
+
+
+
+
 ?>
 
 <!doctype html>
@@ -35,11 +62,14 @@ $conn->query("select * from job_application");
 <body>
 
 <div class="container">
-    <form action="user_list.php" method="post">
-        お名前 性<input type="text">名<input type="text"><br>
-        メールアドレス <input type="email"><br>
-        パスワード <input type="password"><br>
-        パスワード（確認） <input type="password"><br>
+    <?php echo $requestId;?>
+    <form action="edit.php" method="post">
+
+        <input type="hidden" name="id" value="<?php echo $requestId ;?>">
+        お名前 性<input type="text" name="name_sei">名<input type="text" name="name_mei"><br>
+        メールアドレス <input type="email" name="email"><br>
+        パスワード <input type="password" name="password"><br>
+        パスワード（確認） <input type="password" name="password"><br>
         生年月日 <input type="number">年<input type="number">月<input type="number">日 <br>
         郵便番号 <input type="text"><input type="text"><br>
         都道府県 <input type="text"><br>
@@ -109,9 +139,9 @@ $conn->query("select * from job_application");
 
         自己PR <input type="text"><br>
         本人写真 <input type="text"><br>
+        <button onclick='location.href'='edit.php?id=1 type='submit'>保存</button>
     </form>
-    <button class="btn btn-lg btn-primary btn-block btn-signin" type="submit">保存</button>
-    <button class="btn btn-lg btn-primary btn-block btn-signin" type="submit">一覧に戻る</button>
+    <button class="btn btn-lg btn-primary btn-block btn-signin" onclick="location.href='./index.php'" type="submit">一覧に戻る</button>
 </div>
 
 <div class="container">
