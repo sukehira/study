@@ -2,7 +2,10 @@
 
 require_once 'config/env.php';
 
-function dbConnect() :PDO
+/**
+ * @return PDO
+ */
+function dbConnect(): PDO
 {
     $db = DB_DBNAME;
     $host = DB_HOSTNAME;
@@ -12,6 +15,8 @@ function dbConnect() :PDO
     try {
         $db = new PDO("mysql:dbname=$db;host=$host", $username, $password);
         $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
     } catch (PDOException $e) {
         echo 'データベースに接続できません！アプリの設定を確認してください。';
         exit;
@@ -20,14 +25,20 @@ function dbConnect() :PDO
     return $db;
 }
 
-// Postの値を受け取って、求人応募一覧を配列で返す
-function fetchRecruitmentList(array $request) :array
+/**
+ * @param array $request
+ * @return array
+ */
+function fetchRecruitmentList(array $request): array
 {
     $db = dbConnect();
 
     $where = [];
     if (!empty($request['name_sei'])) {
         $where[] = "name_sei like '%{$request['name_sei']}%'";
+    }
+    if (!empty($request['name_mei'])) {
+        $where[] = "name_mei like '%{$request['name_mei']}%'";
     }
     if (!empty($request['email'])) {
         $where[] = "email like '%{$request['email']}%'";
@@ -47,10 +58,15 @@ function fetchRecruitmentList(array $request) :array
         $where[] = "gender = '{$request['gender']}'";
     }
     if (!empty($request['experience_pg'])) {
-        $experiencePgs = implode("','", $request['experience_pg']);
-        $where[] = "experience_pg in ('{$experiencePgs}')";
+        foreach ($request['experience_pg'] as $item) {
+            $where[] = "find_in_set('{$item}', experience_pg)";
+        }
     }
-
+    if (!empty($request['experience_db'])) {
+        foreach ($request['experience_db'] as $item) {
+            $where[] = "find_in_set('{$item}', experience_db)";
+        }
+    }
     if ($where) {
         $whereSql = implode(' AND ', $where);
         $sql = 'select * from job_application where ' . $whereSql;
@@ -58,12 +74,182 @@ function fetchRecruitmentList(array $request) :array
         $sql = 'select * from job_application';
     }
 
-    $stm = $db->prepare($sql);
-    $stm->execute();
-    return $stm->fetchAll(PDO::FETCH_ASSOC);
+    $statement = $db->prepare($sql);
+    $statement->execute();
+    return $statement->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function findRecruitment(array $request)
+/**
+ * @param string $request
+ * @return array
+ */
+function findRecruitment(string $request): array
 {
+    $db = dbConnect();
 
+    $sql = "select * from job_application where id = :id";
+    $statement = $db->prepare($sql);
+    $statement->bindValue(':id', $request);
+    $statement->execute();
+    return $statement->fetch(PDO::FETCH_ASSOC);
 }
+
+/**
+ * @param array $request
+ * @throws Exception
+ */
+function updateRecruitment(array $request)
+{
+    $db = dbConnect();
+
+    $requestData = stringConversion($request);
+    $requestData['photo'] = fileUpload();
+
+    $sql = "UPDATE job_application
+            SET
+              name_sei = :name_sei,
+              name_mei = :name_mei,
+              email = :email,
+              prefecture = :prefecture,
+              address = :address,
+              mansion = :mansion,
+              tel = :tel,
+              experience_pg = :experience_pg,
+              experience_db = :experience_db,
+              photo = :photo
+            WHERE id = :id";
+
+    $statement = $db->prepare($sql);
+    $statement->execute($requestData);
+}
+
+/**
+ * @param array $request
+ * @return array
+ */
+function stringConversion(array $request): array
+{
+    $commaSeparated = [];
+    foreach ($request as $key => $value) {
+        if (is_array($value)) {
+            $commaSeparated[$key] = implode(',', $value);
+        } else {
+            $commaSeparated[$key] = $value;
+        }
+    }
+
+    return $commaSeparated;
+}
+
+/**
+ * @param string $commaSeparated
+ * @param string $target
+ * @return string
+ */
+function checkTheCheckBox(string $commaSeparated, string $target): string
+{
+    $conversion = explode(',', $commaSeparated);
+    if (in_array($target, $conversion)) {
+        return "checked";
+    } else {
+        return "";
+    }
+}
+
+
+/**
+ * @param string $requestId
+ */
+function deleteRecruitment(string $requestId): void
+{
+    $db = dbConnect();
+    $sql = "DELETE FROM job_application WHERE id = :id";
+
+    $statement = $db->prepare($sql);
+    $statement->bindValue(':id', $requestId);
+    $statement->execute();
+}
+
+/**
+ * @param array $request
+ */
+function storeRecruitment(array $request): void
+{
+    $db = dbConnect();
+    $sql = "INSERT INTO job_application (
+                                name_sei, 
+                                name_mei, 
+                                email, 
+                                passwd, 
+                                birthday,
+                                address,
+                                mansion,
+                                prefecture, 
+                                tel) 
+                             VALUES (
+                                :name_sei, 
+                                :name_mei, 
+                                :email, 
+                                :passwd, 
+                                :birthday,
+                                :address,
+                                :mansion,
+                                :prefecture, 
+                                :tel)";
+
+    $statement = $db->prepare($sql);
+    $statement->execute($request);
+}
+
+/**
+ * @return string|void
+ * @throws ImagickException
+ */
+function fileUpload()
+{
+    if (filter_input(INPUT_SERVER, 'REQUEST_METHOD') !== 'POST') {
+        return;
+    }
+
+    $upFile = $_FILES['img'];
+    $tmpName = $upFile['tmp_name'];
+
+    if ($upFile['error'] > 0) {
+        throw new Exception('ファイルアップロードに失敗しました。');
+    }
+
+    // ファイルタイプの確認
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mimeType = finfo_file($finfo, $tmpName);
+
+    $allowedTypes = [
+        'jpg' => 'image/jpeg',
+        'png' => 'image/png',
+        'gif' => 'image/gif'
+    ];
+
+    if (!in_array($mimeType, $allowedTypes)) {
+        throw new Exception('許可されていないファイルタイプです。');
+    }
+
+    $fileName = sha1_file($tmpName);
+
+    // 保存できるか確認
+    $ext = array_search($mimeType, $allowedTypes);
+    $destinationPath = sprintf('%s/%s.%s', 'images', $fileName, $ext);
+    if (!move_uploaded_file($tmpName, $destinationPath)) {
+        throw new Exception('ファイルの保存に失敗しました。');
+    }
+
+    // リサイズ処理
+    $image = new Imagick($destinationPath);
+    $image->thumbnailImage(100, 100);
+    $image->writeImage($destinationPath);
+
+    return $destinationPath;
+}
+
+
+
+
+

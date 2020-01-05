@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once 'config/env.php';
 require_once 'lib/function.php';
 

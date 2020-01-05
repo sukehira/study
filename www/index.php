@@ -1,34 +1,41 @@
 <?php
-session_start();
 require_once 'config/env.php';
 require_once 'lib/function.php';
 
+
 $request = $_POST;
-$_SESSION['id'] = $_GET['id'];
+
+
+
+
+//var_dump($_GET);
+//if (!empty($_GET['sort'])) {
+//    $db = dbConnect();
+//    $sql = 'select * from job_application order by id desc';
+//    $stm = $db->prepare($sql);
+//    $stm->execute();
+//}
+//https://stackoverflow.com/questions/46993612/sort-column-asc-desc-sql-php
+
 // 求人一覧取得
 $recruitmentLists = fetchRecruitmentList($request);
 
-$db = dbConnect();
-if (!empty($_POST['order_by'])) {
-    $sql = 'select * from job_application order by id desc';
-}
-$stm = $db->prepare($sql);
-$stm->execute();
-$orderBy = $stm->fetchAll(PDO::FETCH_ASSOC);
+
+
 
 // ページネーション
 $totalCounts = count($recruitmentLists);
 $maxPage = ceil($totalCounts / 3);
 
-if (!isset($_GET['page_id'])) { // $_GET['page_id'] はURLに渡された現在のページ数
-    $now = 1; // 設定されてない場合は1ページ目にする
+if (!isset($_GET['page_id'])) {
+    $now = 1;
 } else {
     $now = $_GET['page_id'];
 }
 $back = $now - 1;
 $move = $now + 1;
 
-$startNumber = ($now - 1) * 3; // 配列の何番目から取得すればよいか
+$startNumber = ($now - 1) * 3;
 $recruitmentLists = array_slice($recruitmentLists, $startNumber, 3, true);
 
 ?>
@@ -47,22 +54,74 @@ $recruitmentLists = array_slice($recruitmentLists, $startNumber, 3, true);
 </head>
 <body>
 
-<div class="container">
-    <form action="index.php" method="post">
-        名前 <input type="text" name="name_sei"><br>
-        メールアドレス <input type="text" name="email"><br>
-        生年月日 <input type="text" name="start_birthday"> ~ <input type="text" name="end_birthday"><br>
-        都道府県 <input type="text" name="prefecture"><br>
-        性別
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="gender" value="男">
-            <label class="form-check-label">男</label>
+<!-- Navigation -->
+<nav class="navbar navbar-light navbar-dark bg-dark">
+    <a class="navbar-brand" href="#">Recruitment 一覧</a>
+</nav>
+
+<!-- Page Content -->
+<div class="container mt-5 p-lg-5 bg-light">
+
+    <form class="needs-validation" action="index.php" method="post" novalidate>
+
+        <!--氏名-->
+        <div class="form-row mb-4">
+            <div class="col-md-6">
+                <label for="lastName">名字</label>
+                <input type="text" name="name_sei" class="form-control" id="lastName" placeholder="名字" required>
+                <div class="invalid-feedback">
+                    入力してください
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="firstName">名前</label>
+                <input type="text" name="name_mei" class="form-control" id="firstName" placeholder="名前" required>
+                <div class="invalid-feedback">
+                    入力してください
+                </div>
+            </div>
         </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="gender" value="女">
-            <label class="form-check-label">女</label>
+        <!--/氏名-->
+
+        <!--Eメール-->
+        <div class="form-group row">
+            <label for="inputEmail" class="col-sm-2 col-form-label">メールアドレス</label>
+            <div class="col-sm-10">
+                <input type="email" name="email" class="form-control" id="inputEmail" placeholder="メールアドレス" required>
+                <div class="invalid-feedback">入力してください</div>
+            </div>
         </div>
-        <br>
+        <!--/Eメール-->
+        <!--都道府県-->
+        <div class="form-group row">
+            <label for="inputEmail" class="col-sm-2 col-form-label">都道府県</label>
+            <div class="col-sm-10">
+                <input type="text" name="prefecture" class="form-control" id="inputEmail" placeholder="都道府県" required>
+                <div class="invalid-feedback">入力してください</div>
+            </div>
+        </div>
+        <!--/都道府県-->
+
+        <!--性別-->
+        <div class="form-group">
+            <div class="row mb-4">
+                <legend class="col-form-label col-sm-2">性別</legend>
+                <div class="col-sm-10">
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" id="customRadioInline1" name="gender" value="男" class="custom-control-input"
+                               required>
+                        <label class="custom-control-label" for="customRadioInline1">男</label>
+                    </div>
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" id="customRadioInline2" name="gender" value="女"
+                               class="custom-control-input">
+                        <label class="custom-control-label" for="customRadioInline2">女</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--/性別-->
+
         経験PG言語
         <div class="form-check form-check-inline">
             <input class="form-check-input" type="checkbox" name="experience_pg[]" value="C">
@@ -93,8 +152,33 @@ $recruitmentLists = array_slice($recruitmentLists, $startNumber, 3, true);
             <label class="form-check-label">php</label>
         </div>
         <br>
+        経験DB言語
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" name="experience_db[]"
+                   type="checkbox" value="Oracel">
+            <label class="form-check-label">Oracel</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" name="experience_db[]"
+                   type="checkbox" value="MS SQL server">
+            <label class="form-check-label">MS SQL server</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" name="experience_db[]"
+                   type="checkbox" value="MySQL">
+            <label class="form-check-label">MySQL</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" name="experience_db[]"
+                   type="checkbox" value="PosgreSQL">
+            <label class="form-check-label">PosgreSQL</label>
+        </div>
+        <br>
         <button class="btn btn-lg btn-primary btn-block btn-signin" type="submit">検索</button>
     </form>
+    <button class="btn btn-lg btn-primary btn-block btn-signin" onclick="location.href='./index.php'" type="submit">
+        条件クリア
+    </button>
 </div>
 
 <div class="container">
@@ -102,7 +186,9 @@ $recruitmentLists = array_slice($recruitmentLists, $startNumber, 3, true);
         <ul class="pagination">
             <?php if ($totalCounts > 3): ?>
                 <?php echo '<a href=\'/index.php?page_id= 1 \'> << </a>' . '　'; ?>
-                <?php echo '<a href=\'/index.php?page_id=' . $back . '\'> < </a>' . '　'; ?>
+                <?php if ($now > 1) :?>
+                    <?php echo '<a href=\'/index.php?page_id=' . $back . '\'> 前へ </a>' . '　'; ?>
+                <?php endif ;?>
                 <?php
                 for ($i = 1; $i <= $maxPage; $i++) { // 最大ページ数分リンクを作成
                     if ($i == $now) { // 現在表示中のページ数の場合はリンクを貼らない
@@ -112,7 +198,9 @@ $recruitmentLists = array_slice($recruitmentLists, $startNumber, 3, true);
                     }
                 }
                 ?>
-                <?php echo '<a href=\'/index.php?page_id=' . $move . '\'> > </a>' . '　'; ?>
+                <?php if ($now < $maxPage) :?>
+                    <?php echo '<a href=\'/index.php?page_id=' . $move . '\'> 次へ </a>' . '　'; ?>
+                <?php endif ;?>
                 <?php echo '<a href=\'/index.php?page_id=' . $maxPage . '\'> >> </a>' . '　'; ?>
             <?php endif; ?>
         </ul>
@@ -120,12 +208,13 @@ $recruitmentLists = array_slice($recruitmentLists, $startNumber, 3, true);
     <table class="table">
         <thead class="thead-dark">
         <tr>
-            <th scope="col"><a href="index.php?sort=id">ID</a></th>
+            <th scope="col"><a href="index.php?order=id&sort=asc">ID</a></th>
             <th scope="col"><a href="index.php?sort=name">名前</a></th>
             <th scope="col"><a href="index.php?sort=mail">メールアドレス</a></th>
             <th scope="col">性別</th>
             <th scope="col"><a href="index.php?sort=prefecture">都道府県</a></th>
             <th scope="col">経験PG言語</th>
+            <th scope="col">経験DB言語</th>
             <th scope="col">本人写真</th>
             <th scope="col"></th>
             <th scope="col"></th>
@@ -140,7 +229,8 @@ $recruitmentLists = array_slice($recruitmentLists, $startNumber, 3, true);
                 <td><?php echo $recruitmentList['gender']; ?></td>
                 <td><?php echo $recruitmentList['prefecture']; ?></td>
                 <td><?php echo $recruitmentList['experience_pg']; ?></td>
-                <td><?php echo $recruitmentList['photo']; ?></td>
+                <td><?php echo $recruitmentList['experience_db']; ?></td>
+                <td><img src=<?php echo $recruitmentList['photo']; ?> alt="画像"></td>
                 <td><?php echo "<a href=edit.php?id=" . $recruitmentList["id"] . ">編集</a>"; ?></td>
                 <td><?php echo "<a href=destroy.php?id=" . $recruitmentList["id"] . ">削除</a>"; ?></td>
             </tr>

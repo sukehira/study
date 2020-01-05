@@ -1,22 +1,16 @@
 <?php
-
 require_once 'config/env.php';
+require_once 'lib/function.php';
 
-$db = DB_DBNAME;
-$host = DB_HOSTNAME;
-$username = DB_USERNAME;
-$password = DB_PASSWORD;
-
-try {
-    $conn = new PDO("mysql:dbname=$db;host=$host", $username, $password);
-    $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    echo 'データベースに接続できません！アプリの設定を確認してください。';
-    exit;
+if (!empty($_POST)) {
+//    var_dump($_POST);
+    storeRecruitment($_POST);
+//    header("Location: http://localhost:8080/index.php");
+//    exit;
 }
-$conn->query("select * from job_application");
 
-// TODO
+
+
 ?>
 
 <!doctype html>
@@ -34,89 +28,197 @@ $conn->query("select * from job_application");
 </head>
 <body>
 
-<div class="container">
-    <form action="user_list.php" method="post">
-        お名前 性<input type="text">名<input type="text"><br>
-        メールアドレス <input type="email"><br>
-        パスワード <input type="password"><br>
-        パスワード（確認） <input type="password"><br>
-        生年月日 <input type="number">年<input type="number">月<input type="number">日 <br>
-        郵便番号 <input type="text"><input type="text"><br>
-        都道府県 <input type="text"><br>
-        住所 <input type="text"><br>
-        マンション <input type="text"><br>
-        TEL <input type="tel"><br>
-        性別
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1">
-            <label class="form-check-label">男</label>
+<!-- Navigation -->
+<nav class="navbar navbar-light navbar-dark bg-dark">
+    <a class="navbar-brand" href="./index.php">Recruitment 登録</a>
+</nav>
+
+<!-- Page Content -->
+<div class="container mt-5 p-lg-5 bg-light">
+
+    <form class="needs-validation" action="store.php" method="post" novalidate>
+
+        お名前
+        <div class="form-row mb-4">
+            <div class="col-md-5">
+                <input type="text" name="name_sei" class="form-control" placeholder="名字">
+            </div>
+            <div class="col-md-5">
+                <input type="text" name="name_mei" class="form-control" placeholder="名前">
+            </div>
         </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2">
-            <label class="form-check-label">女</label>
+
+        <div class="form-group row">
+            <label for="inputEmail" class="col-sm-2 col-form-label">メールアドレス</label>
+            <div class="col-sm-5">
+                <input type="email" name="email" class="form-control" placeholder="メールアドレス">
+            </div>
         </div>
-        <br>
+        <div class="form-group row">
+            <label for="inputEmail" class="col-sm-2 col-form-label">パスワード</label>
+            <div class="col-sm-3">
+                <input type="password" name="passwd" class="form-control">
+            </div>
+        </div>
+        <div class="form-group row mb-4">
+            <label for="inputEmail" class="col-sm-2 col-form-label">パスワード 確認</label>
+            <div class="col-sm-3">
+                <input type="password" name="passwd" class="form-control">
+            </div>
+        </div>
+        生年月日
+        <div class="form-row">
+            <div class="col-md-3 mb-4">
+                <input type="text" name="birthday"
+                       class="form-control">
+            </div>
+            年
+            <div class="col-md-3">
+                <input type="text" name="address" class="form-control"
+                >
+            </div>
+            月
+            <div class="col-md-3">
+                <input type="text" name="mansion" class="form-control"
+                >
+            </div>
+            日
+        </div>
+
+        <!--/氏名-->
+        <div class="form-row">
+            <div class="col-md-3 mb-4">
+                <label for="inputAddress02">都道府県</label>
+                <input type="text" name="prefecture"
+                       class="form-control" placeholder="東京都">
+            </div>
+            <div class="col-md-6">
+                <label for="inputAddress03">住所</label>
+                <input type="text" name="address" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label for="inputAddress03">マンション</label>
+                <input type="text" name="mansion" class="form-control">
+            </div>
+        </div>
+<!--        <div class="col-md-3">-->
+<!--            <label for="inputAddress03">マンション</label>-->
+<!--            <input type="text" name="mansion" class="form-control">-->
+<!--        </div>-->
+        電話番号
+        <div class="form-row">
+            <div class="col-md-1 mb-4">
+                <input type="text" name="tel"
+                       class="form-control">
+            </div>
+            -
+            <div class="col-md-1">
+                <input type="text" name="tel" class="form-control"
+                >
+            </div>
+            -
+            <div class="col-md-1">
+                <input type="text" name="tel" class="form-control"
+                >
+            </div>
+        </div>
+
+        <!--性別-->
+        <div class="form-group">
+            <div class="row mb-4">
+                <legend class="col-form-label col-sm-2">性別</legend>
+                <div class="col-sm-10">
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" name="gender" value="男" class="custom-control-input"
+                        >
+                        <label class="custom-control-label" for="customRadioInline1">男</label>
+                    </div>
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" name="gender" value="女"
+                               class="custom-control-input">
+                        <label class="custom-control-label" for="customRadioInline2">女</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--/性別-->
 
         経験PG言語
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1">
+            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="C">
             <label class="form-check-label">C</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2">
+            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="C++">
             <label class="form-check-label">C++</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3">
+            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="C#">
             <label class="form-check-label">C#</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio4" value="option4">
+            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="java">
             <label class="form-check-label">java</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio5" value="option5">
+            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="python">
             <label class="form-check-label">python</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio6" value="option6">
+            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="ruby">
             <label class="form-check-label">ruby</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio7" value="option7">
+            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="php">
             <label class="form-check-label">php</label>
         </div>
         <br>
-
         経験DB言語
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1">
-            <label class="form-check-label">Oracel</label>
+            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="C">
+            <label class="form-check-label">C</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="inlineCheckbox2" value="option2">
-            <label class="form-check-label">MS SQL server</label>
+            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="C++">
+            <label class="form-check-label">C++</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="inlineCheckbox3" value="option3">
-            <label class="form-check-label">MySQL</label>
+            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="C#">
+            <label class="form-check-label">C#</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="inlineCheckbox3" value="option3">
-            <label class="form-check-label">PosgreSQL</label>
+            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="java">
+            <label class="form-check-label">java</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="python">
+            <label class="form-check-label">python</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="ruby">
+            <label class="form-check-label">ruby</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="php">
+            <label class="form-check-label">php</label>
         </div>
         <br>
+<!--        <div class="form-group" class="row mb-4">-->
+<!--            <label for="message">メッセージ</label>-->
+<!--            <textarea name="message" rows="6" cols="80" class="form-control"></textarea>-->
+<!--        </div>-->
+        <span class="btn btn-primary">
+            <input type="file">
+        </span>
 
-        自己PR <input type="text"><br>
-        本人写真 <input type="text"><br>
+        <input type="submit" value="確認">
+
     </form>
-    <button class="btn btn-lg btn-primary btn-block btn-signin" type="submit">確認</button>
-    <button class="btn btn-lg btn-primary btn-block btn-signin" type="submit">クリア</button>
+    <button class="btn btn-lg btn-primary btn-block btn-signin" type="submit" onclick="location.href='./store.php'">
+        クリア
+    </button>
 </div>
 
-<div class="container">
-
-</div>
 
 <!-- Optional JavaScript -->
 <!-- jQuery first, then Popper.js, then Bootstrap JS -->
