@@ -13,11 +13,12 @@ function dbConnect(): PDO
     $password = DB_PASSWORD;
 
     try {
-        $db = new PDO("mysql:dbname=$db;host=$host", $username, $password);
+        $db = new PDO("mysql:dbname=$db;host=$host;charset=utf8", $username, $password);
         $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
     } catch (PDOException $e) {
+        $e->getMessage();
         echo 'データベースに接続できません！アプリの設定を確認してください。';
         exit;
     }
@@ -104,6 +105,7 @@ function updateRecruitment(array $request)
 
     $requestData = stringConversion($request);
     $requestData['photo'] = fileUpload();
+//    var_dump($requestData);
 
     $sql = "UPDATE job_application
             SET
@@ -122,6 +124,19 @@ function updateRecruitment(array $request)
     $statement = $db->prepare($sql);
     $statement->execute($requestData);
 }
+///var/www/html/lib/function.php:108:
+//array (size=11)
+//  'id' => string '6' (length=1)
+//  'name_sei' => string 'yoshida' (length=7)
+//  'name_mei' => string 'ダイスケ' (length=12)
+//  'email' => string 'tasukdesukeasd@gmail.com' (length=24)
+//  'prefecture' => string '東京' (length=6)
+//  'address' => string 'あああ' (length=9)
+//  'mansion' => string 'あああ' (length=9)
+//  'tel' => string '08044431830' (length=11)
+//  'experience_pg' => string 'C,C++,C#' (length=8)
+//  'experience_db' => string 'Oracel' (length=6)
+//  'photo' => string 'images/8f705c7e7c3a14ce044bd2b462fbab807bee2491.jpg' (length=51)
 
 /**
  * @param array $request
@@ -176,29 +191,39 @@ function deleteRecruitment(string $requestId): void
 function storeRecruitment(array $request): void
 {
     $db = dbConnect();
+    $requestData = stringConversion($request);
+
     $sql = "INSERT INTO job_application (
                                 name_sei, 
                                 name_mei, 
                                 email, 
                                 passwd, 
                                 birthday,
+                                prefecture,
                                 address,
                                 mansion,
-                                prefecture, 
-                                tel) 
+                                tel,
+                                gender,
+                                experience_pg,
+                                experience_db
+                                ) 
                              VALUES (
                                 :name_sei, 
                                 :name_mei, 
                                 :email, 
                                 :passwd, 
                                 :birthday,
+                                :prefecture,
                                 :address,
                                 :mansion,
-                                :prefecture, 
-                                :tel)";
+                                :tel,
+                                :gender,
+                                :experience_pg,
+                                :experience_db
+                                )";
 
     $statement = $db->prepare($sql);
-    $statement->execute($request);
+    $statement->execute($requestData);
 }
 
 /**

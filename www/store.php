@@ -3,10 +3,9 @@ require_once 'config/env.php';
 require_once 'lib/function.php';
 
 if (!empty($_POST)) {
-//    var_dump($_POST);
     storeRecruitment($_POST);
-//    header("Location: http://localhost:8080/index.php");
-//    exit;
+    header("Location: http://localhost:8080/index.php");
+    exit;
 }
 
 
@@ -60,29 +59,29 @@ if (!empty($_POST)) {
                 <input type="password" name="passwd" class="form-control">
             </div>
         </div>
-        <div class="form-group row mb-4">
-            <label for="inputEmail" class="col-sm-2 col-form-label">パスワード 確認</label>
-            <div class="col-sm-3">
-                <input type="password" name="passwd" class="form-control">
-            </div>
-        </div>
+<!--        <div class="form-group row mb-4">-->
+<!--            <label for="inputEmail" class="col-sm-2 col-form-label">パスワード 確認</label>-->
+<!--            <div class="col-sm-3">-->
+<!--                <input type="password" name="passwd" class="form-control">-->
+<!--            </div>-->
+<!--        </div>-->
         生年月日
         <div class="form-row">
             <div class="col-md-3 mb-4">
                 <input type="text" name="birthday"
                        class="form-control">
             </div>
-            年
-            <div class="col-md-3">
-                <input type="text" name="address" class="form-control"
-                >
-            </div>
-            月
-            <div class="col-md-3">
-                <input type="text" name="mansion" class="form-control"
-                >
-            </div>
-            日
+<!--            年-->
+<!--            <div class="col-md-3">-->
+<!--                <input type="text" name="address" class="form-control"-->
+<!--                >-->
+<!--            </div>-->
+<!--            月-->
+<!--            <div class="col-md-3">-->
+<!--                <input type="text" name="mansion" class="form-control"-->
+<!--                >-->
+<!--            </div>-->
+<!--            日-->
         </div>
 
         <!--/氏名-->
@@ -111,16 +110,16 @@ if (!empty($_POST)) {
                 <input type="text" name="tel"
                        class="form-control">
             </div>
-            -
-            <div class="col-md-1">
-                <input type="text" name="tel" class="form-control"
-                >
-            </div>
-            -
-            <div class="col-md-1">
-                <input type="text" name="tel" class="form-control"
-                >
-            </div>
+<!--            --->
+<!--            <div class="col-md-1">-->
+<!--                <input type="text" name="tel" class="form-control"-->
+<!--                >-->
+<!--            </div>-->
+<!--            --->
+<!--            <div class="col-md-1">-->
+<!--                <input type="text" name="tel" class="form-control"-->
+<!--                >-->
+<!--            </div>-->
         </div>
 
         <!--性別-->
@@ -129,12 +128,12 @@ if (!empty($_POST)) {
                 <legend class="col-form-label col-sm-2">性別</legend>
                 <div class="col-sm-10">
                     <div class="custom-control custom-radio custom-control-inline">
-                        <input type="radio" name="gender" value="男" class="custom-control-input"
-                        >
+                        <input type="radio" id="customRadioInline1" name="gender" value="男" class="custom-control-input"
+                               >
                         <label class="custom-control-label" for="customRadioInline1">男</label>
                     </div>
                     <div class="custom-control custom-radio custom-control-inline">
-                        <input type="radio" name="gender" value="女"
+                        <input type="radio" id="customRadioInline2" name="gender" value="女"
                                class="custom-control-input">
                         <label class="custom-control-label" for="customRadioInline2">女</label>
                     </div>
@@ -175,41 +174,33 @@ if (!empty($_POST)) {
         <br>
         経験DB言語
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="C">
-            <label class="form-check-label">C</label>
+            <input class="form-check-input" name="experience_db[]"
+                   type="checkbox" value="Oracel">
+            <label class="form-check-label">Oracel</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="C++">
-            <label class="form-check-label">C++</label>
+            <input class="form-check-input" name="experience_db[]"
+                   type="checkbox" value="MS SQL server">
+            <label class="form-check-label">MS SQL server</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="C#">
-            <label class="form-check-label">C#</label>
+            <input class="form-check-input" name="experience_db[]"
+                   type="checkbox" value="MySQL">
+            <label class="form-check-label">MySQL</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="java">
-            <label class="form-check-label">java</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="python">
-            <label class="form-check-label">python</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="ruby">
-            <label class="form-check-label">ruby</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" name="experience_pg[]" value="php">
-            <label class="form-check-label">php</label>
+            <input class="form-check-input" name="experience_db[]"
+                   type="checkbox" value="PosgreSQL">
+            <label class="form-check-label">PosgreSQL</label>
         </div>
         <br>
 <!--        <div class="form-group" class="row mb-4">-->
 <!--            <label for="message">メッセージ</label>-->
 <!--            <textarea name="message" rows="6" cols="80" class="form-control"></textarea>-->
 <!--        </div>-->
-        <span class="btn btn-primary">
-            <input type="file">
-        </span>
+<!--        <span class="btn btn-primary">-->
+<!--            <input type="file">-->
+<!--        </span>-->
 
         <input type="submit" value="確認">
 
