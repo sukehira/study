@@ -4,8 +4,7 @@ require_once 'lib/function.php';
 
 if (!empty($_POST)) {
     updateRecruitment($_POST);
-    header("Location: http://localhost:8080/index.php");
-    exit();
+    redirect('index.php');
 }
 if (!empty($_GET['id'])) {
     $recruitment = findRecruitment($_GET['id']);
@@ -162,7 +161,10 @@ if (!empty($_GET['id'])) {
             <label class="form-check-label">PosgreSQL</label>
         </div>
         <br>
+
         画像<input name="img" type="file"><br>
+        <img src="<?php echo $recruitment['photo'] ?>" alt=""><br>
+
         <input type="submit" value="更新">
     </form>
     <button class="btn btn-lg btn-primary btn-block btn-signin" onclick="location.href='./index.php'" type="submit">

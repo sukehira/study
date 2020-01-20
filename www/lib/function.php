@@ -28,9 +28,10 @@ function dbConnect(): PDO
 
 /**
  * @param array $request
+ * @param string $page
  * @return array
  */
-function fetchRecruitmentList(array $request): array
+function fetchRecruitmentList(array $request, string $page): array
 {
     $db = dbConnect();
 
@@ -70,12 +71,13 @@ function fetchRecruitmentList(array $request): array
     }
     if ($where) {
         $whereSql = implode(' AND ', $where);
-        $sql = 'select * from job_application where ' . $whereSql;
+        $sql = "select * from job_application where . {$whereSql} . limit :off, 3";
     } else {
-        $sql = 'select * from job_application';
+        $sql = 'select * from job_application limit :off, 3';
     }
 
     $statement = $db->prepare($sql);
+    $statement->bindValue(':off', $page);
     $statement->execute();
     return $statement->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -105,7 +107,6 @@ function updateRecruitment(array $request)
 
     $requestData = stringConversion($request);
     $requestData['photo'] = fileUpload();
-//    var_dump($requestData);
 
     $sql = "UPDATE job_application
             SET
@@ -124,19 +125,6 @@ function updateRecruitment(array $request)
     $statement = $db->prepare($sql);
     $statement->execute($requestData);
 }
-///var/www/html/lib/function.php:108:
-//array (size=11)
-//  'id' => string '6' (length=1)
-//  'name_sei' => string 'yoshida' (length=7)
-//  'name_mei' => string 'ダイスケ' (length=12)
-//  'email' => string 'tasukdesukeasd@gmail.com' (length=24)
-//  'prefecture' => string '東京' (length=6)
-//  'address' => string 'あああ' (length=9)
-//  'mansion' => string 'あああ' (length=9)
-//  'tel' => string '08044431830' (length=11)
-//  'experience_pg' => string 'C,C++,C#' (length=8)
-//  'experience_db' => string 'Oracel' (length=6)
-//  'photo' => string 'images/8f705c7e7c3a14ce044bd2b462fbab807bee2491.jpg' (length=51)
 
 /**
  * @param array $request
@@ -187,11 +175,13 @@ function deleteRecruitment(string $requestId): void
 
 /**
  * @param array $request
+ * @throws ImagickException
  */
 function storeRecruitment(array $request): void
 {
     $db = dbConnect();
     $requestData = stringConversion($request);
+    $requestData['photo'] = fileUpload();
 
     $sql = "INSERT INTO job_application (
                                 name_sei, 
@@ -205,7 +195,8 @@ function storeRecruitment(array $request): void
                                 tel,
                                 gender,
                                 experience_pg,
-                                experience_db
+                                experience_db,
+                                photo
                                 ) 
                              VALUES (
                                 :name_sei, 
@@ -219,7 +210,8 @@ function storeRecruitment(array $request): void
                                 :tel,
                                 :gender,
                                 :experience_pg,
-                                :experience_db
+                                :experience_db,
+                                :photo
                                 )";
 
     $statement = $db->prepare($sql);
@@ -274,7 +266,81 @@ function fileUpload()
     return $destinationPath;
 }
 
+/**
+ * @param $string
+ * @return string
+ */
+function h($string): string
+{
+    return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
+}
 
+/**
+ * @param $url
+ */
+function redirect($url)
+{
+    header('Location: ' . $url);
+    exit();
+}
+
+/**
+ * @return array
+ */
+function columnCountNumber(): array
+{
+    $db = dbConnect();
+    $count = $db->query('select count(*) as count from job_application');
+    return $count->fetch();
+}
+
+/**
+ * @param $page
+ * @param $maxPage
+ * @return int
+ */
+function decideStartPage($page, $maxPage): int
+{
+    $startPage = ($page - 1) * 3;
+    if (empty($startPage)) {
+        $startPage = 1;
+    }
+    if ($startPage < 1) {
+        $startPage = max($startPage, 1);
+    }
+    if ($startPage > $maxPage) {
+        $startPage = min($startPage, $maxPage);
+    }
+    return $startPage;
+}
+
+/**
+ * @param $totalCounts
+ * @return string
+ */
+function maxPageCount($totalCounts): string
+{
+    return ceil($totalCounts['count'] / 3);
+}
+
+
+/**
+ * @param $request
+ * @return array
+ */
+function login($request): array
+{
+    $db = dbConnect();
+
+    $sql = "SELECT * FROM job_application WHERE email = :email AND passwd = :passwd";
+    $statement = $db->prepare($sql);
+
+    $statement->bindValue(':email', $request['email']);
+    $statement->bindValue(':passwd', $request['passwd']);
+
+    $statement->execute();
+    return $statement->fetch(PDO::FETCH_ASSOC);
+}
 
 
 

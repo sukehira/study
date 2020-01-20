@@ -2,42 +2,21 @@
 require_once 'config/env.php';
 require_once 'lib/function.php';
 
+session_start();
 
 $request = $_POST;
+$page = $_GET['page_id'];
+$registeredID = $_SESSION['id'];
 
 
 
+// ページネーションのための処理
+$totalCounts = columnCountNumber();
+$maxPage = maxPageCount($totalCounts);
+$startPage = decideStartPage($page, $maxPage);
 
-//var_dump($_GET);
-//if (!empty($_GET['sort'])) {
-//    $db = dbConnect();
-//    $sql = 'select * from job_application order by id desc';
-//    $stm = $db->prepare($sql);
-//    $stm->execute();
-//}
-//https://stackoverflow.com/questions/46993612/sort-column-asc-desc-sql-php
-
-// 求人一覧取得
-$recruitmentLists = fetchRecruitmentList($request);
-
-
-
-
-// ページネーション
-$totalCounts = count($recruitmentLists);
-$maxPage = ceil($totalCounts / 3);
-
-if (!isset($_GET['page_id'])) {
-    $now = 1;
-} else {
-    $now = $_GET['page_id'];
-}
-$back = $now - 1;
-$move = $now + 1;
-
-$startNumber = ($now - 1) * 3;
-$recruitmentLists = array_slice($recruitmentLists, $startNumber, 3, true);
-
+// 求人一覧を取得する
+$recruitmentLists = fetchRecruitmentList($request, $startPage);
 ?>
 
 <html lang="ja">
@@ -58,7 +37,9 @@ $recruitmentLists = array_slice($recruitmentLists, $startNumber, 3, true);
 <nav class="navbar navbar-light navbar-dark bg-dark">
     <a class="navbar-brand" href="#">Recruitment 一覧</a>
 </nav>
-
+<div class="container">
+    <a href="logout.php">ログアウト</a>
+</div>
 <!-- Page Content -->
 <div class="container mt-5 p-lg-5 bg-light">
 
@@ -185,23 +166,23 @@ $recruitmentLists = array_slice($recruitmentLists, $startNumber, 3, true);
     <nav aria-label>
         <ul class="pagination">
             <?php if ($totalCounts > 3): ?>
-                <?php echo '<a href=\'/index.php?page_id= 1 \'> << </a>' . '　'; ?>
-                <?php if ($now > 1) :?>
-                    <?php echo '<a href=\'/index.php?page_id=' . $back . '\'> 前へ </a>' . '　'; ?>
-                <?php endif ;?>
+                <a href=index.php?page_id=1> << </a>
+                <?php if ($page > 1) : ?>
+                    <a href=index.php?page_id=<?php echo $page - 1 ;?> > 前へ </a>
+                <?php endif; ?>
                 <?php
                 for ($i = 1; $i <= $maxPage; $i++) { // 最大ページ数分リンクを作成
-                    if ($i == $now) { // 現在表示中のページ数の場合はリンクを貼らない
-                        echo $now . '　';
+                    if ($i == $page) { // 現在表示中のページ数の場合はリンクを貼らない
+                        echo $page . '　';
                     } else {
                         echo '<a href=\'/index.php?page_id=' . $i . '\'>' . $i . '</a>' . '　';
                     }
                 }
                 ?>
-                <?php if ($now < $maxPage) :?>
-                    <?php echo '<a href=\'/index.php?page_id=' . $move . '\'> 次へ </a>' . '　'; ?>
-                <?php endif ;?>
-                <?php echo '<a href=\'/index.php?page_id=' . $maxPage . '\'> >> </a>' . '　'; ?>
+                <?php if ($page < $maxPage) : ?>
+                    <a href=index.php?page_id=<?php echo $page + 1 ;?> > 次へ </a>
+                <?php endif; ?>
+                <a href=index.php?page_id=<?php echo $maxPage ;?> > >> </a>
             <?php endif; ?>
         </ul>
     </nav>
@@ -223,16 +204,18 @@ $recruitmentLists = array_slice($recruitmentLists, $startNumber, 3, true);
         <tbody>
         <?php foreach ($recruitmentLists as $recruitmentList): ?>
             <tr>
-                <td><?php echo $recruitmentList['id']; ?></td>
-                <td><?php echo $recruitmentList['name_sei'] . $recruitmentList['name_mei']; ?></td>
-                <td><?php echo $recruitmentList['email']; ?></td>
-                <td><?php echo $recruitmentList['gender']; ?></td>
-                <td><?php echo $recruitmentList['prefecture']; ?></td>
-                <td><?php echo $recruitmentList['experience_pg']; ?></td>
-                <td><?php echo $recruitmentList['experience_db']; ?></td>
-                <td><img src=<?php echo $recruitmentList['photo']; ?> alt="画像"></td>
-                <td><?php echo "<a href=edit.php?id=" . $recruitmentList["id"] . ">編集</a>"; ?></td>
-                <td><?php echo "<a href=destroy.php?id=" . $recruitmentList["id"] . ">削除</a>"; ?></td>
+                <td><?= h($recruitmentList['id']) ?></td>
+                <td><?= h($recruitmentList['name_sei']) . $recruitmentList['name_mei'] ?></td>
+                <td><?= h($recruitmentList['email']) ?></td>
+                <td><?= h($recruitmentList['gender']) ?></td>
+                <td><?= h($recruitmentList['prefecture']) ?></td>
+                <td><?= h($recruitmentList['experience_pg']) ?></td>
+                <td><?= h($recruitmentList['experience_db']) ?></td>
+                <td><img src=<?php echo $recruitmentList['photo'] ?> alt="画像"></td>
+                <?php if ($registeredID == $recruitmentList['id']) : ?>
+                    <td><?php echo "<a href=edit.php?id=" . $recruitmentList["id"] . ">編集</a>"; ?></td>
+                    <td><?php echo "<a href=destroy.php?id=" . $recruitmentList["id"] . ">削除</a>"; ?></td>
+                <?php endif; ?>
             </tr>
         <?php endforeach; ?>
         </tbody>
