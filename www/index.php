@@ -5,7 +5,7 @@ require_once 'lib/function.php';
 session_start();
 
 $request = $_POST;
-$page = $_GET['page_id'];
+$nowPage = $_GET['page_id'];
 $registeredID = $_SESSION['id'];
 
 
@@ -13,10 +13,10 @@ $registeredID = $_SESSION['id'];
 // ページネーションのための処理
 $totalCounts = columnCountNumber();
 $maxPage = maxPageCount($totalCounts);
-$startPage = decideStartPage($page, $maxPage);
+$offSetNumber = decideOffSetNumber($nowPage, $maxPage);
 
 // 求人一覧を取得する
-$recruitmentLists = fetchRecruitmentList($request, $startPage);
+$recruitmentLists = fetchRecruitmentList($request, $offSetNumber);
 ?>
 
 <html lang="ja">

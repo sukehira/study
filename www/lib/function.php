@@ -28,10 +28,10 @@ function dbConnect(): PDO
 
 /**
  * @param array $request
- * @param string $page
+ * @param int $offSetNumber
  * @return array
  */
-function fetchRecruitmentList(array $request, string $page): array
+function fetchRecruitmentList(array $request, int $offSetNumber): array
 {
     $db = dbConnect();
 
@@ -71,13 +71,13 @@ function fetchRecruitmentList(array $request, string $page): array
     }
     if ($where) {
         $whereSql = implode(' AND ', $where);
-        $sql = "select * from job_application where . {$whereSql} . limit :off, 3";
+        $sql = "select * from job_application where . {$whereSql} . limit 3 offset :startNumber";
     } else {
-        $sql = 'select * from job_application limit :off, 3';
+        $sql = 'select * from job_application limit 3 offset :startNumber';
     }
 
     $statement = $db->prepare($sql);
-    $statement->bindValue(':off', $page);
+    $statement->bindValue(':startNumber', $offSetNumber);
     $statement->execute();
     return $statement->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -295,23 +295,23 @@ function columnCountNumber(): array
 }
 
 /**
- * @param $page
+ * @param $nowPage
  * @param $maxPage
  * @return int
  */
-function decideStartPage($page, $maxPage): int
+function decideOffSetNumber($nowPage, $maxPage): int
 {
-    $startPage = ($page - 1) * 3;
-    if (empty($startPage)) {
-        $startPage = 1;
+    if (empty($nowPage)) {
+        $page = 1;
+    } elseif ($nowPage < 1) {
+        $page = max($nowPage, 1);
+    } elseif ($nowPage > $maxPage) {
+        $page = min($nowPage, $maxPage);
+    } else {
+        $page = $nowPage;
     }
-    if ($startPage < 1) {
-        $startPage = max($startPage, 1);
-    }
-    if ($startPage > $maxPage) {
-        $startPage = min($startPage, $maxPage);
-    }
-    return $startPage;
+
+    return ($page - 1) * 3;
 }
 
 /**
